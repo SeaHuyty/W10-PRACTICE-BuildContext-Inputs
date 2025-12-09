@@ -31,6 +31,19 @@ class Expense {
         return Icons.work;
     }
   }
+
+  static IconData iconFor(ExpenseType category) {
+    switch (category) {
+      case ExpenseType.leisure:
+        return Icons.movie;
+      case ExpenseType.work:
+        return Icons.work;
+      case ExpenseType.travel:
+        return Icons.flight;
+      case ExpenseType.food:
+        return Icons.fastfood;
+    }
+  }
 }
 
 class ExpenseList {
@@ -38,5 +51,13 @@ class ExpenseList {
 
   ExpenseList({required this.expenseItem});
 
-  void add(InputDecoration inputDecoration) {}
+  Map<ExpenseType, double> get totalsByCategory {
+    final totals = {for (var type in ExpenseType.values) type: 0.0};
+
+    for (var expense in expenseItem) {
+      totals[expense.category] = totals[expense.category]! + expense.amount;
+    }
+
+    return totals;
+  }
 }

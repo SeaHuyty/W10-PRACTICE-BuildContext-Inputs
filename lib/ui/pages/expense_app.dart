@@ -3,6 +3,7 @@ import 'package:assignment/data/expense_data.dart';
 import 'package:assignment/model/expense.dart';
 import 'package:assignment/ui/pages/expense_form.dart';
 import 'package:assignment/ui/widgets/expense_tile.dart';
+import 'package:assignment/ui/widgets/statistic_card.dart';
 
 class ExpenseApp extends StatefulWidget {
   const ExpenseApp({super.key});
@@ -50,6 +51,27 @@ class _ExpenseAppState extends State<ExpenseApp> {
         .toList();
   }
 
+  void deleteItem(int index) {
+    final removedItem = expenseList.expenseItem[index];
+    setState(() {
+      expenseList.expenseItem.removeAt(index);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Expense deleted."),
+        action: SnackBarAction(
+          label: "UNDO",
+          onPressed: () {
+            setState(() {
+              expenseList.expenseItem.insert(index, removedItem);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredExpenses = getFilteredExpenses();
@@ -75,7 +97,10 @@ class _ExpenseAppState extends State<ExpenseApp> {
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
+          spacing: 20,
           children: [
+            StatisticCard(),
+
             Row(
               children: [
                 Expanded(
@@ -131,35 +156,31 @@ class _ExpenseAppState extends State<ExpenseApp> {
               ],
             ),
 
-            const SizedBox(height: 20),
-
             Expanded(
-              child: ListView.builder(
-                itemCount: filteredExpenses.length,
-                itemBuilder: (context, index) {
-                  final items = filteredExpenses[index];
-                  return Dismissible(
-                    key: Key(items.id),
-                    direction: DismissDirection.horizontal,
-                    onDismissed: (direction) {
-                      setState(() {
-                        expenseList.expenseItem.removeAt(index);
-                      });
-                    },
-                    child: Column(
-                      children: [
-                        ExpenseTile(
-                          title: items.title,
-                          amount: items.amount,
-                          date: items.date,
-                          icon: items.icon,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
+              child: filteredExpenses.isEmpty
+                  ? Center(child: Text("No expenses found. Start adding some!"))
+                  : ListView.builder(
+                      itemCount: filteredExpenses.length,
+                      itemBuilder: (context, index) {
+                        final items = filteredExpenses[index];
+                        return Dismissible(
+                          key: Key(items.id),
+                          direction: DismissDirection.horizontal,
+                          onDismissed: (direction) => deleteItem(index),
+                          child: Column(
+                            children: [
+                              ExpenseTile(
+                                title: items.title,
+                                amount: items.amount,
+                                date: items.date,
+                                icon: items.icon,
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

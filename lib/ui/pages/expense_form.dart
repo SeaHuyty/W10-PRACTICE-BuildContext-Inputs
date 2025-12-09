@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:assignment/model/expense.dart';
 import 'package:intl/intl.dart';
+import 'package:assignment/ui/widgets/app_button.dart';
 
 class ExpenseForm extends StatefulWidget {
   final void Function(Expense expense) onCreate;
@@ -16,11 +17,11 @@ class _ExpenseFormState extends State<ExpenseForm> {
   final amountController = TextEditingController();
   late String value = '';
   late ExpenseType category = ExpenseType.food;
-  DateTime? selectedDate = DateTime.now();
+  DateTime? selectedDate;
 
   String dateLabel() {
     final d = selectedDate;
-    return d == null ? 'Select Date' : DateFormat('dd/MM/yyyy').format(d);
+    return d == null ? 'No date selected' : DateFormat('dd/MM/yyyy').format(d);
   }
 
   void onDatePick() async {
@@ -37,7 +38,36 @@ class _ExpenseFormState extends State<ExpenseForm> {
     }
   }
 
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Invalid Input"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text("Okay"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void onCreate() {
+    final titleText = textController.text;
+    final amountText = amountController.text;
+
+    if (titleText.isEmpty) {
+      showErrorDialog("Title cannot be empty.");
+      return;
+    }
+
+    if (amountText.isEmpty) {
+      showErrorDialog("Amount cannot be empty.");
+      return;
+    }
+
     Expense expense = Expense(
       title: textController.text,
       amount: double.parse(amountController.text),
@@ -136,32 +166,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 40,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    elevation: 0,
-                  ),
-                  onPressed: closeForm,
-                  child: const Text('Close', style: TextStyle(fontSize: 20)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    elevation: 0,
-                  ),
-                  onPressed: onCreate,
-                  child: const Text('Create', style: TextStyle(fontSize: 20)),
-                ),
+                AppButton(onPressed: closeForm, label: "Close"),
+                AppButton(onPressed: onCreate, label: "Create"),
               ],
             ),
           ],
